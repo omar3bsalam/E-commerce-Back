@@ -5,12 +5,10 @@ const connectDB = require('./config/database');
 
 dotenv.config();
 
-// الاتصال بقاعدة البيانات
 connectDB();
 
 const app = express();
 
-// إعدادات CORS
 app.use(cors({
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173'],
   credentials: true
@@ -19,13 +17,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes الأساسية
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 
-// Route للصحة
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 
@@ -35,7 +31,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Route الأساسي
 app.get('/', (req, res) => {
   res.json({ 
     message: '🛍️ E-commerce Backend API',
@@ -49,7 +44,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Route لاختبار البيانات
 app.get('/api/test-data', async (req, res) => {
   try {
     const Product = require('./models/Product');
@@ -68,7 +62,6 @@ app.get('/api/test-data', async (req, res) => {
   }
 });
 
-// معالجة 404
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -76,7 +69,6 @@ app.use('*', (req, res) => {
   });
 });
 
-// معالجة الأخطاء
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   res.status(500).json({
@@ -85,22 +77,20 @@ app.use((err, req, res, next) => {
   });
 });
 
-// استخدام بورت مختلف لتجنب التعارض
 const PORT = process.env.PORT || 5003;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-  console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
-  console.log(`📊 Test Data: http://localhost:${PORT}/api/test-data`);
+  console.log(` Server running on port ${PORT}`);
+  console.log(` Local: http://localhost:${PORT}`);
+  console.log(` Health: http://localhost:${PORT}/api/health`);
+  console.log(` Test Data: http://localhost:${PORT}/api/test-data`);
   
-  // تشغيل seed data بعد بدء السيرفر
   setTimeout(async () => {
     try {
       const seedDatabase = require('./seeds/products');
       await seedDatabase();
     } catch (error) {
-      console.log('⚠️ Seed data not available:', error.message);
+      console.log(' Seed data not available:', error.message);
     }
   }, 2000);
 });

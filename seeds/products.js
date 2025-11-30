@@ -3,7 +3,6 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const Order = require('../models/Order');
 
-// دالة لإنشاء slug
 const generateSlug = (name) => {
   return name
     .toLowerCase()
@@ -15,12 +14,10 @@ const seedDatabase = async () => {
   try {
     console.log('🔄 Starting database seeding...');
 
-    // Clear existing data
     await Product.deleteMany({});
     await Order.deleteMany({});
     console.log('🗑️ Cleared existing products and orders');
 
-    // Create or get users
     let adminUser = await User.findOne({ email: 'admin@store.com' });
     let johnUser = await User.findOne({ email: 'john@example.com' });
 
@@ -62,7 +59,6 @@ const seedDatabase = async () => {
 
     console.log('💻 Creating sample products...');
 
-    // Sample products - 40 منتج
     const sampleProducts = [
       {
         name: "MacBook Pro 16-inch",
@@ -174,7 +170,6 @@ const seedDatabase = async () => {
         averageRating: 4.7,
         reviewCount: 423
       },
-      // المنتجات الجديدة من 6 إلى 40
       {
         name: "Samsung Galaxy S24 Ultra",
         slug: generateSlug("Samsung Galaxy S24 Ultra"),
@@ -950,15 +945,13 @@ const seedDatabase = async () => {
     const createdProducts = await Product.insertMany(sampleProducts);
     console.log(`📦 Created ${createdProducts.length} products`);
 
-    // Create sample order - مصحح نهائياً
     if (createdProducts.length >= 2) {
-      // إنشاء order number يدوياً
       const timestamp = Date.now();
       const random = Math.random().toString(36).substr(2, 9).toUpperCase();
       const orderNumber = `ORD-${timestamp}-${random}`;
 
       const orderData = {
-        orderNumber: orderNumber, // أضفنا order number يدوياً
+        orderNumber: orderNumber,
         user: johnUser._id,
         items: [
           {
@@ -1004,20 +997,20 @@ const seedDatabase = async () => {
       const order = new Order(orderData);
       await order.save();
 
-      console.log(`📋 Created sample order: ${order.orderNumber}`);
+      console.log(` Created sample order: ${order.orderNumber}`);
     }
 
-    console.log('✅ Database seeding completed successfully!');
-    console.log('\n📝 Sample Login Credentials:');
+    console.log(' Database seeding completed successfully!');
+    console.log('\n Sample Login Credentials:');
     console.log('   Admin: admin@store.com / admin123');
     console.log('   User:  john@example.com / customer123');
-    console.log('\n🌐 Test URLs:');
+    console.log('\n Test URLs:');
     console.log('   Health Check: http://localhost:5003/api/health');
     console.log('   Products:     http://localhost:5003/api/products');
     console.log('   Test Data:    http://localhost:5003/api/test-data');
 
   } catch (error) {
-    console.error('❌ Error seeding database:', error.message);
+    console.error(' Error seeding database:', error.message);
     console.error('Error details:', error);
   }
 };

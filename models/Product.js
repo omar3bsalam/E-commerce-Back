@@ -104,7 +104,6 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for better performance
 productSchema.index({ name: 'text', description: 'text' });
 productSchema.index({ category: 1 });
 productSchema.index({ brand: 1 });
@@ -113,7 +112,6 @@ productSchema.index({ 'inventory.quantity': 1 });
 productSchema.index({ isActive: 1 });
 productSchema.index({ slug: 1 });
 
-// Update average rating when reviews change
 productSchema.methods.updateAverageRating = function() {
   if (this.reviews.length === 0) {
     this.averageRating = 0;
@@ -126,13 +124,11 @@ productSchema.methods.updateAverageRating = function() {
   this.reviewCount = this.reviews.length;
 };
 
-// Check if product is in stock
 productSchema.methods.isInStock = function() {
   if (!this.inventory.trackQuantity) return true;
   return this.inventory.quantity > 0 || this.inventory.allowOutOfStockPurchase;
 };
 
-// Generate slug before saving
 productSchema.pre('save', function(next) {
   if (this.isModified('name') && !this.slug) {
     this.slug = this.name

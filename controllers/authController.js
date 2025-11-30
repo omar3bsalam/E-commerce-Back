@@ -10,7 +10,6 @@ const signToken = (id) => {
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
-  // Remove password from output
   user.password = undefined;
 
   res.status(statusCode).json({
@@ -31,7 +30,6 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, role, phone, address } = req.body;
 
-    // Validation
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -46,7 +44,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -55,7 +52,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -79,7 +75,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -87,10 +82,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Find user and include password
     const user = await User.findOne({ email }).select('+password');
 
-    // Check if user exists and password is correct
     if (!user || !(await user.correctPassword(password, user.password))) {
       return res.status(401).json({
         success: false,

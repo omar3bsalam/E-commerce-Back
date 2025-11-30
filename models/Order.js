@@ -103,7 +103,6 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate order number before saving
 orderSchema.pre('save', function(next) {
   if (!this.orderNumber) {
     const timestamp = Date.now();
@@ -111,7 +110,6 @@ orderSchema.pre('save', function(next) {
     this.orderNumber = `ORD-${timestamp}-${random}`;
   }
 
-  // Set billing address to shipping address if not provided
   if (!this.billingAddress || Object.keys(this.billingAddress).length === 0) {
     this.billingAddress = { ...this.shippingAddress };
   }
@@ -119,17 +117,14 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
-// Virtual for total items count
 orderSchema.virtual('totalItems').get(function() {
   return this.items.reduce((total, item) => total + item.quantity, 0);
 });
 
-// Virtual for final total (including shipping and tax)
 orderSchema.virtual('finalTotal').get(function() {
   return this.totalAmount + this.shippingCost + this.taxAmount;
 });
 
-// Ensure virtuals are included in JSON
 orderSchema.set('toJSON', { virtuals: true });
 
 module.exports = mongoose.model('Order', orderSchema);

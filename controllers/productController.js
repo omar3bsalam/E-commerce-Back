@@ -1,8 +1,5 @@
 const Product = require('../models/Product');
 
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Public
 exports.getAllProducts = async (req, res) => {
   try {
     const {
@@ -18,27 +15,22 @@ exports.getAllProducts = async (req, res) => {
       inStock
     } = req.query;
 
-    // Build query
     let query = { isActive: true };
 
-    // Category filter
     if (category) {
       query.category = category;
     }
 
-    // Brand filter
     if (brand) {
       query.brand = new RegExp(brand, 'i');
     }
 
-    // Price range filter
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Search filter
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -47,7 +39,6 @@ exports.getAllProducts = async (req, res) => {
       ];
     }
 
-    // In stock filter
     if (inStock === 'true') {
       query.$or = [
         { 'inventory.trackQuantity': false },
@@ -58,18 +49,15 @@ exports.getAllProducts = async (req, res) => {
       ];
     }
 
-    // Sort options
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    // Execute query with pagination
     const products = await Product.find(query)
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .populate('reviews.user', 'name');
 
-    // Get total count for pagination
     const total = await Product.countDocuments(query);
 
     res.json({
@@ -91,9 +79,6 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// @desc    Get single product
-// @route   GET /api/products/:id
-// @access  Public
 exports.getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -119,9 +104,6 @@ exports.getProduct = async (req, res) => {
   }
 };
 
-// @desc    Create new product
-// @route   POST /api/products
-// @access  Private/Admin
 exports.createProduct = async (req, res) => {
   try {
     const product = await Product.create(req.body);
@@ -139,9 +121,6 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// @desc    Update product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
@@ -173,9 +152,6 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// @desc    Delete product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
@@ -204,9 +180,6 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// @desc    Get products by category
-// @route   GET /api/products/category/:category
-// @access  Public
 exports.getProductsByCategory = async (req, res) => {
   try {
     const { category } = req.params;

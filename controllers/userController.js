@@ -1,9 +1,5 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
-
-// @desc    Get user profile
-// @route   GET /api/users/profile
-// @access  Private
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -21,9 +17,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/users/profile
-// @access  Private
 exports.updateProfile = async (req, res) => {
   try {
     const { name, phone, address } = req.body;
@@ -55,9 +48,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Get user cart
-// @route   GET /api/users/cart
-// @access  Private
 exports.getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
@@ -83,14 +73,10 @@ exports.getCart = async (req, res) => {
   }
 };
 
-// @desc    Add item to cart
-// @route   POST /api/users/cart
-// @access  Private
 exports.addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
-    // Validate input
     if (!productId) {
       return res.status(400).json({
         success: false,
@@ -105,7 +91,6 @@ exports.addToCart = async (req, res) => {
       });
     }
 
-    // Check if product exists and is active
     const product = await Product.findOne({ 
       _id: productId, 
       isActive: true 
@@ -118,7 +103,6 @@ exports.addToCart = async (req, res) => {
       });
     }
 
-    // Check stock availability
     if (product.inventory.trackQuantity && product.inventory.quantity < quantity) {
       return res.status(400).json({
         success: false,
@@ -126,11 +110,9 @@ exports.addToCart = async (req, res) => {
       });
     }
 
-    // Add to cart using model method
     const user = await User.findById(req.user._id);
     await user.addToCart(productId, quantity);
 
-    // Get updated cart with populated products
     const updatedUser = await User.findById(req.user._id)
       .populate('cart.product', 'name price featuredImage inventory sku');
 
@@ -148,15 +130,11 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-// @desc    Update cart item quantity
-// @route   PUT /api/users/cart/:productId
-// @access  Private
 exports.updateCartItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const { quantity } = req.body;
 
-    // Validate input
     if (!quantity || quantity < 1) {
       return res.status(400).json({
         success: false,
@@ -164,7 +142,6 @@ exports.updateCartItem = async (req, res) => {
       });
     }
 
-    // Check if product exists in user's cart
     const user = await User.findById(req.user._id);
     const cartItem = user.cart.find(
       item => item.product.toString() === productId
@@ -177,7 +154,6 @@ exports.updateCartItem = async (req, res) => {
       });
     }
 
-    // Check stock availability
     const product = await Product.findById(productId);
     if (product.inventory.trackQuantity && product.inventory.quantity < quantity) {
       return res.status(400).json({
@@ -186,10 +162,8 @@ exports.updateCartItem = async (req, res) => {
       });
     }
 
-    // Update cart item quantity
     await user.updateCartItem(productId, quantity);
 
-    // Get updated cart with populated products
     const updatedUser = await User.findById(req.user._id)
       .populate('cart.product', 'name price featuredImage inventory sku');
 
@@ -207,9 +181,6 @@ exports.updateCartItem = async (req, res) => {
   }
 };
 
-// @desc    Remove item from cart
-// @route   DELETE /api/users/cart/:productId
-// @access  Private
 exports.removeFromCart = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -217,7 +188,6 @@ exports.removeFromCart = async (req, res) => {
     const user = await User.findById(req.user._id);
     await user.removeFromCart(productId);
 
-    // Get updated cart with populated products
     const updatedUser = await User.findById(req.user._id)
       .populate('cart.product', 'name price featuredImage inventory sku');
 
@@ -235,9 +205,6 @@ exports.removeFromCart = async (req, res) => {
   }
 };
 
-// @desc    Clear entire cart
-// @route   DELETE /api/users/cart
-// @access  Private
 exports.clearCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -257,9 +224,6 @@ exports.clearCart = async (req, res) => {
   }
 };
 
-// @desc    Get user wishlist
-// @route   GET /api/users/wishlist
-// @access  Private
 exports.getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
@@ -278,9 +242,6 @@ exports.getWishlist = async (req, res) => {
   }
 };
 
-// @desc    Add product to wishlist
-// @route   POST /api/users/wishlist
-// @access  Private
 exports.addToWishlist = async (req, res) => {
   try {
     const { productId } = req.body;
@@ -292,7 +253,6 @@ exports.addToWishlist = async (req, res) => {
       });
     }
 
-    // Check if product exists
     const product = await Product.findOne({ 
       _id: productId, 
       isActive: true 
@@ -307,7 +267,6 @@ exports.addToWishlist = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     
-    // Check if product already in wishlist
     if (user.wishlist.includes(productId)) {
       return res.status(400).json({
         success: false,
@@ -318,7 +277,6 @@ exports.addToWishlist = async (req, res) => {
     user.wishlist.push(productId);
     await user.save();
 
-    // Get updated wishlist with populated products
     const updatedUser = await User.findById(req.user._id)
       .populate('wishlist', 'name price featuredImage category brand averageRating');
 
@@ -336,9 +294,6 @@ exports.addToWishlist = async (req, res) => {
   }
 };
 
-// @desc    Remove product from wishlist
-// @route   DELETE /api/users/wishlist/:productId
-// @access  Private
 exports.removeFromWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -350,7 +305,6 @@ exports.removeFromWishlist = async (req, res) => {
 
     await user.save();
 
-    // Get updated wishlist with populated products
     const updatedUser = await User.findById(req.user._id)
       .populate('wishlist', 'name price featuredImage category brand averageRating');
 
@@ -368,9 +322,6 @@ exports.removeFromWishlist = async (req, res) => {
   }
 };
 
-// @desc    Get cart summary (total items and total price)
-// @route   GET /api/users/cart/summary
-// @access  Private
 exports.getCartSummary = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
@@ -386,7 +337,6 @@ exports.getCartSummary = async (req, res) => {
       const itemTotal = item.product.price * item.quantity;
       totalPrice += itemTotal;
 
-      // Check if item is in stock
       if (!item.product.inventory.trackQuantity || item.product.inventory.quantity >= item.quantity) {
         inStockItems += item.quantity;
       }

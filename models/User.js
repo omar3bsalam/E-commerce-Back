@@ -58,7 +58,6 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -71,12 +70,10 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Compare password method
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-// Update cart method
 userSchema.methods.addToCart = async function(productId, quantity = 1) {
   const existingItemIndex = this.cart.findIndex(
     item => item.product.toString() === productId.toString()
@@ -94,7 +91,6 @@ userSchema.methods.addToCart = async function(productId, quantity = 1) {
   return await this.save();
 };
 
-// Remove from cart method
 userSchema.methods.removeFromCart = async function(productId) {
   this.cart = this.cart.filter(
     item => item.product.toString() !== productId.toString()
@@ -103,7 +99,6 @@ userSchema.methods.removeFromCart = async function(productId) {
   return await this.save();
 };
 
-// Update cart item quantity method
 userSchema.methods.updateCartItem = async function(productId, quantity) {
   const cartItem = this.cart.find(
     item => item.product.toString() === productId.toString()
@@ -116,7 +111,6 @@ userSchema.methods.updateCartItem = async function(productId, quantity) {
   return await this.save();
 };
 
-// Clear cart method
 userSchema.methods.clearCart = async function() {
   this.cart = [];
   return await this.save();

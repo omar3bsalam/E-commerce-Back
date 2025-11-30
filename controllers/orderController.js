@@ -2,12 +2,10 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 
-// @desc    Create new order
-// @route   POST /api/orders
-// @access  Private
+
 exports.createOrder = async (req, res) => {
   try {
-    console.log('🛒 Create order request received:', {
+    console.log(' Create order request received:', {
       user: req.user ? req.user._id : 'No user',
       itemsCount: req.body.items ? req.body.items.length : 0
     });
@@ -20,9 +18,8 @@ exports.createOrder = async (req, res) => {
       notes 
     } = req.body;
 
-    // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
-      console.log('❌ No items in order');
+      console.log(' No items in order');
       return res.status(400).json({
         success: false,
         message: 'Order items are required'
@@ -30,7 +27,7 @@ exports.createOrder = async (req, res) => {
     }
 
     if (!shippingAddress || !shippingAddress.name || !shippingAddress.street || !shippingAddress.city || !shippingAddress.country) {
-      console.log('❌ Incomplete shipping address');
+      console.log(' Incomplete shipping address');
       return res.status(400).json({
         success: false,
         message: 'Complete shipping address is required'
@@ -40,9 +37,8 @@ exports.createOrder = async (req, res) => {
     let totalAmount = 0;
     const orderItems = [];
 
-    // Validate items and calculate total
     for (const item of items) {
-      console.log('📦 Processing item:', item);
+      console.log(' Processing item:', item);
       
       if (!item.product || !item.quantity) {
         return res.status(400).json({
@@ -54,7 +50,7 @@ exports.createOrder = async (req, res) => {
       const product = await Product.findById(item.product);
       
       if (!product) {
-        console.log('❌ Product not found:', item.product);
+        console.log(' Product not found:', item.product);
         return res.status(404).json({
           success: false,
           message: `Product not found: ${item.product}`
@@ -68,7 +64,6 @@ exports.createOrder = async (req, res) => {
         });
       }
 
-      // Check stock availability
       if (product.inventory.trackQuantity && product.inventory.quantity < item.quantity) {
         return res.status(400).json({
           success: false,
@@ -87,33 +82,30 @@ exports.createOrder = async (req, res) => {
         image: product.featuredImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop'
       });
 
-      console.log('✅ Item validated:', product.name, 'Qty:', item.quantity, 'Price:', product.price);
+      console.log(' Item validated:', product.name, 'Qty:', item.quantity, 'Price:', product.price);
     }
 
-    // Calculate shipping cost and tax
     const shippingCost = calculateShippingCost(shippingMethod, totalAmount);
     const taxAmount = calculateTax(totalAmount, shippingAddress.country);
 
-    // Generate order number
     const timestamp = Date.now();
     const random = Math.random().toString(36).substr(2, 9).toUpperCase();
     const orderNumber = `ORD-${timestamp}-${random}`;
 
-    console.log('💰 Order calculations:', {
+    console.log(' Order calculations:', {
       totalAmount,
       shippingCost,
       taxAmount,
       finalTotal: totalAmount + shippingCost + taxAmount
     });
 
-    // Create order
     const orderData = {
       orderNumber,
       user: req.user._id,
       items: orderItems,
       totalAmount,
       shippingAddress,
-      billingAddress: shippingAddress, // Use shipping address as billing if not provided
+      billingAddress: shippingAddress,
       paymentMethod,
       shippingMethod,
       shippingCost,
@@ -124,14 +116,13 @@ exports.createOrder = async (req, res) => {
       estimatedDelivery: calculateEstimatedDelivery(shippingMethod)
     };
 
-    console.log('📝 Creating order with data:', orderData);
+    console.log(' Creating order with data:', orderData);
 
     const order = new Order(orderData);
     await order.save();
 
-    console.log('✅ Order created successfully:', order.orderNumber);
+    console.log(' Order created successfully:', order.orderNumber);
 
-    // Update product inventory
     for (const item of items) {
       const product = await Product.findById(item.product);
       if (product && product.inventory.trackQuantity) {
@@ -141,15 +132,13 @@ exports.createOrder = async (req, res) => {
       }
     }
 
-    // Clear user's cart after successful order
     try {
       await User.findByIdAndUpdate(req.user._id, { cart: [] });
-      console.log('🛒 Cleared user cart');
+      console.log(' Cleared user cart');
     } catch (cartError) {
-      console.log('⚠️ Could not clear cart:', cartError.message);
+      console.log(' Could not clear cart:', cartError.message);
     }
 
-    // Populate order with product details for response
     const populatedOrder = await Order.findById(order._id)
       .populate('items.product', 'name sku featuredImage');
 
@@ -160,7 +149,7 @@ exports.createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Create order error:', error.message);
+    console.error(' Create order error:', error.message);
     console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
@@ -168,17 +157,12 @@ exports.createOrder = async (req, res) => {
     });
   }
 };
-
-// @desc    Get user orders
-// @route   GET /api/orders
-// @access  Private
 exports.getUserOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
 
     let query = { user: req.user._id };
     
-    // Filter by status if provided
     if (status) {
       query.orderStatus = status;
     }
@@ -210,9 +194,6 @@ exports.getUserOrders = async (req, res) => {
   }
 };
 
-// @desc    Get single order
-// @route   GET /api/orders/:id
-// @access  Private
 exports.getOrder = async (req, res) => {
   try {
     const order = await Order.findOne({
@@ -240,9 +221,6 @@ exports.getOrder = async (req, res) => {
   }
 };
 
-// @desc    Update order status (Admin only)
-// @route   PUT /api/orders/:id/status
-// @access  Private/Admin
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderStatus, trackingNumber } = req.body;
@@ -281,10 +259,6 @@ exports.updateOrderStatus = async (req, res) => {
     });
   }
 };
-
-// @desc    Cancel order
-// @route   PUT /api/orders/:id/cancel
-// @access  Private
 exports.cancelOrder = async (req, res) => {
   try {
     const order = await Order.findOne({
@@ -299,7 +273,6 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    // Only allow cancellation for pending or confirmed orders
     if (!['pending', 'confirmed'].includes(order.orderStatus)) {
       return res.status(400).json({
         success: false,
@@ -307,7 +280,6 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    // Restore product inventory
     for (const item of order.items) {
       const product = await Product.findById(item.product);
       if (product && product.inventory.trackQuantity) {
@@ -333,7 +305,6 @@ exports.cancelOrder = async (req, res) => {
   }
 };
 
-// Helper functions
 const calculateShippingCost = (method, orderAmount) => {
   const shippingRates = {
     standard: orderAmount > 50 ? 0 : 5.99,
@@ -349,10 +320,9 @@ const calculateTax = (amount, country) => {
     'USA': 0.08,
     'Canada': 0.13,
     'UK': 0.20
-    // Add more countries as needed
   };
 
-  const taxRate = taxRates[country] || 0.10; // Default 10%
+  const taxRate = taxRates[country] || 0.10;
   return parseFloat((amount * taxRate).toFixed(2));
 };
 
