@@ -128,7 +128,7 @@ exports.createOrder = async (req, res) => {
       if (product && product.inventory.trackQuantity) {
         product.inventory.quantity -= item.quantity;
         await product.save();
-        console.log('📦 Updated inventory for:', product.name, 'New quantity:', product.inventory.quantity);
+        console.log(' Updated inventory for:', product.name, 'New quantity:', product.inventory.quantity);
       }
     }
 

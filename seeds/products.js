@@ -12,11 +12,11 @@ const generateSlug = (name) => {
 
 const seedDatabase = async () => {
   try {
-    console.log('🔄 Starting database seeding...');
+    console.log(' Starting database seeding...');
 
     await Product.deleteMany({});
     await Order.deleteMany({});
-    console.log('🗑️ Cleared existing products and orders');
+    console.log(' Cleared existing products and orders');
 
     let adminUser = await User.findOne({ email: 'admin@store.com' });
     let johnUser = await User.findOne({ email: 'john@example.com' });
@@ -36,7 +36,7 @@ const seedDatabase = async () => {
         }
       });
       await adminUser.save();
-      console.log('👤 Created admin user');
+      console.log(' Created admin user');
     }
 
     if (!johnUser) {
@@ -54,10 +54,10 @@ const seedDatabase = async () => {
         }
       });
       await johnUser.save();
-      console.log('👤 Created John user');
+      console.log(' Created John user');
     }
 
-    console.log('💻 Creating sample products...');
+    console.log(' Creating sample products...');
 
     const sampleProducts = [
       {
@@ -943,7 +943,7 @@ const seedDatabase = async () => {
     ];
 
     const createdProducts = await Product.insertMany(sampleProducts);
-    console.log(`📦 Created ${createdProducts.length} products`);
+    console.log(` Created ${createdProducts.length} products`);
 
     if (createdProducts.length >= 2) {
       const timestamp = Date.now();

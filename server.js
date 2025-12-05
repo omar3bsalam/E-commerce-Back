@@ -33,7 +33,7 @@ app.get('/api/health', (req, res) => {
 
 app.get('/', (req, res) => {
   res.json({ 
-    message: '🛍️ E-commerce Backend API',
+    message: ' E-commerce Backend API',
     endpoints: {
       auth: '/api/auth',
       products: '/api/products', 
